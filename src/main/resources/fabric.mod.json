@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "cobbleevtracker",
+	"version": "${version}",
+	"name": "Cobble EV Tracker",
+	"description": "Client-side EV training HUD for Cobblemon: per-Pokémon EV goals, alerts when a stat is complete or over its goal, and the EVs gained after each battle.",
+	"authors": [
+		"AsshJyP"
+	],
+	"contact": {
+		"sources": "https://github.com/AsshJyP/cobble-ev-tracker"
+	},
+	"license": "MIT",
+	"icon": "assets/cobbleevtracker/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"io.github.asshjyp.cobbleevtracker.CobbleEvTracker"
+		],
+		"modmenu": [
+			"io.github.asshjyp.cobbleevtracker.ModMenuIntegration"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*",
+		"cobblemon": ">=1.7.0"
+	},
+	"recommends": {
+		"modmenu": "*"
+	}
+}

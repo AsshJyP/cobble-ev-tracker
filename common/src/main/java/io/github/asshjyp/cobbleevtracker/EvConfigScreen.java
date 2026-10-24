@@ -12,10 +12,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +33,22 @@ public class EvConfigScreen extends Screen {
 	private static final int BUTTON_WIDTH = 150;
 	private static final int BUTTON_HEIGHT = 20;
 	private static final int GAP = 10;
-	/** Separación entre filas y alto de los títulos de sección; más apretados en pantallas bajas (ver init). */
-	private int row = 24;
-	private int section = 16;
+	private static final int ROW = 24;
+	private static final int SECTION = 16;
+	/** Separación extra entre secciones y antes de "Listo", y dónde empieza el contenido. */
+	private static final int GAP_Y = 6;
+	private static final int TOP = 28;
+	/** Lo que ocupa el menú entero sin escalar: 3 títulos de sección, 9 filas, separaciones, "Listo" y márgenes. */
+	private static final int NEEDED_HEIGHT = TOP + SECTION * 3 + ROW * 9 + GAP_Y * 3 + BUTTON_HEIGHT + 6;
+	private static final int NEEDED_WIDTH = BUTTON_WIDTH * 2 + GAP + 20;
+	/**
+	 * Si el menú no cabe (ventana baja o escala de interfaz grande), se dibuja entero más pequeño en vez de cortarse:
+	 * se maqueta en un tamaño "virtual" mayor y se escala al dibujar; el ratón se divide por la misma escala.
+	 */
+	private float uiScale = 1f;
+	/** Tooltip que pidió un botón en este fotograma; se dibuja dentro del escalado (ver setTooltipForNextRenderPass). */
+	private List<FormattedCharSequence> pendingTooltip;
+	private ClientTooltipPositioner pendingPositioner;
 	private static final int GOAL_COLUMNS = 3;
 	private static final int GOAL_COLUMN_GAP = 8;
 	private static final int TEXT_ERROR = 0xFF5555;
@@ -72,24 +87,22 @@ public class EvConfigScreen extends Screen {
 	@Override
 	protected void init() {
 		EvConfig config = CobbleEvTracker.CONFIG;
+		// Tamaño real de la interfaz; si el menú no cabe, se maqueta en un tamaño virtual mayor (ver uiScale)
+		int realWidth = minecraft.getWindow().getGuiScaledWidth();
+		int realHeight = minecraft.getWindow().getGuiScaledHeight();
+		uiScale = Math.min(1f, Math.min(realHeight / (float) NEEDED_HEIGHT, realWidth / (float) NEEDED_WIDTH));
+		width = Math.round(realWidth / uiScale);
+		height = Math.round(realHeight / uiScale);
 		target = EvHud.target();
 		int left = width / 2 - BUTTON_WIDTH - GAP / 2;
 		int right = width / 2 + GAP / 2;
 		int fullWidth = BUTTON_WIDTH * 2 + GAP;
-		// 3 títulos de sección, 8 filas, separaciones y el botón "Listo"
-		// 3 títulos de sección y 9 filas; si no cabe con el espaciado normal, se aprieta (los botones siguen midiendo 20)
-		row = 24;
-		section = 16;
-		if (section * 3 + row * 9 + 6 * 2 + 8 + BUTTON_HEIGHT + 28 > height) {
-			row = 21;
-			section = 12;
-		}
-		int contentHeight = section * 3 + row * 9 + 6 * 2 + 8 + BUTTON_HEIGHT;
-		int y = Math.max(28, (height - contentHeight) / 2 + 8);
+		int contentHeight = SECTION * 3 + ROW * 9 + GAP_Y * 3 + BUTTON_HEIGHT;
+		int y = Math.max(TOP, (height - contentHeight) / 2 + 8);
 
 		// --- HUD ---
 		hudTitleY = y;
-		y += section;
+		y += SECTION;
 		addRenderableWidget(CycleButton.onOffBuilder(config.hudEnabled)
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.hud"),
 						(button, value) -> config.hudEnabled = value));
@@ -98,7 +111,7 @@ public class EvConfigScreen extends Screen {
 				.bounds(right, y, BUTTON_WIDTH, BUTTON_HEIGHT)
 				.tooltip(Tooltip.create(Component.translatable("cobbleevtracker.config.edit_hud.tooltip")))
 				.build());
-		y += row;
+		y += ROW;
 		addRenderableWidget(CycleButton.<HudMode>builder(mode -> Component.translatable(
 						"cobbleevtracker.config.hud_mode." + mode.name().toLowerCase(Locale.ROOT)))
 				.withValues(HudMode.values())
@@ -115,16 +128,16 @@ public class EvConfigScreen extends Screen {
 							needsRebuild = true;
 						}));
 		addFixedPokemonButton(right, y);
-		y += row;
+		y += ROW;
 		addRenderableWidget(CycleButton.onOffBuilder(config.onlyWithGoal)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.only_with_goal.tooltip")))
 				.create(left, y, fullWidth, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.only_with_goal"),
 						(button, value) -> config.onlyWithGoal = value));
-		y += row + 6;
+		y += ROW + GAP_Y;
 
 		// --- Objetivo del Pokémon actual ---
 		goalTitleY = y;
-		y += section;
+		y += SECTION;
 		int[] goal = target == null ? null : EvGoals.get(target.getUuid());
 		int columnWidth = (fullWidth - GOAL_COLUMN_GAP * (GOAL_COLUMNS - 1)) / GOAL_COLUMNS;
 		int labelWidth = 0;
@@ -133,7 +146,7 @@ public class EvConfigScreen extends Screen {
 		}
 		for (int i = 0; i < EvStats.COUNT; i++) {
 			int column = i % GOAL_COLUMNS;
-			int rowY = y + (i / GOAL_COLUMNS) * row;
+			int rowY = y + (i / GOAL_COLUMNS) * ROW;
 			int columnX = left + column * (columnWidth + GOAL_COLUMN_GAP);
 			labelX[i] = columnX;
 			labelY[i] = rowY + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1;
@@ -153,7 +166,7 @@ public class EvConfigScreen extends Screen {
 			});
 			goalBoxes[i] = addRenderableWidget(box);
 		}
-		y += row * 2;
+		y += ROW * 2;
 		List<Preset> presets = presets();
 		UUID targetId = target == null ? null : target.getUuid();
 		if (!Objects.equals(targetId, presetTarget)) {
@@ -176,11 +189,11 @@ public class EvConfigScreen extends Screen {
 						button -> fillBoxes(new int[EvStats.COUNT]))
 				.bounds(right + BUTTON_WIDTH - halfWidth, y, halfWidth, BUTTON_HEIGHT)
 				.build()).active = target != null;
-		y += row + 6;
+		y += ROW + GAP_Y;
 
 		// --- Avisos ---
 		alertsTitleY = y;
-		y += section;
+		y += SECTION;
 		addRenderableWidget(CycleButton.onOffBuilder(config.notifyGoalReached)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.notify_goal.tooltip")))
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.notify_goal"),
@@ -189,7 +202,7 @@ public class EvConfigScreen extends Screen {
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.notify_over.tooltip")))
 				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.notify_over"),
 						(button, value) -> config.notifyOverGoal = value));
-		y += row;
+		y += ROW;
 		addRenderableWidget(CycleButton.<GainTiming>builder(timing -> Component.translatable(
 						"cobbleevtracker.config.gain_timing." + timing.name().toLowerCase(Locale.ROOT)))
 				.withValues(GainTiming.values())
@@ -206,7 +219,7 @@ public class EvConfigScreen extends Screen {
 				.withTooltip(mode -> Tooltip.create(Component.translatable("cobbleevtracker.config.gain_mode.tooltip")))
 				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.gain_mode"),
 						(button, value) -> config.gainMode = value));
-		y += row;
+		y += ROW;
 		addRenderableWidget(CycleButton.onOffBuilder(config.showRivalYield)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.rival_yield.tooltip")))
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.rival_yield"),
@@ -215,7 +228,7 @@ public class EvConfigScreen extends Screen {
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.pokedex_yield.tooltip")))
 				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.pokedex_yield"),
 						(button, value) -> config.showPokedexYield = value));
-		y += row + 8;
+		y += ROW + GAP_Y;
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
 				.bounds(width / 2 - 100, y, 200, BUTTON_HEIGHT)
@@ -321,10 +334,80 @@ public class EvConfigScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+		int mx = (int) (mouseX / uiScale);
+		int my = (int) (mouseY / uiScale);
+		GuiGraphics target = uiScale < 1f ? scaledGraphics(graphics) : graphics;
+		target.pose().pushPose();
+		target.pose().scale(uiScale, uiScale, 1);
+		renderContents(target, mx, my, partialTick);
+		if (pendingTooltip != null) {
+			target.renderTooltip(font, pendingTooltip, pendingPositioner, mx, my);
+			pendingTooltip = null;
+		}
+		target.pose().popPose();
+		if (target != graphics) {
+			target.flush();
+		}
+	}
+
+	/**
+	 * En Minecraft 1.21.1 el recorte de GuiGraphics (enableScissor, que usan los botones para desplazar los textos
+	 * largos) no tiene en cuenta la escala del dibujo: con el menú escalado, el texto quedaba recortado en otro sitio
+	 * y no se veía (el botón de plantillas salía vacío). Este GuiGraphics comparte el buffer del juego y multiplica
+	 * el recorte por la escala.
+	 */
+	private GuiGraphics scaledGraphics(GuiGraphics graphics) {
+		float scale = uiScale;
+		return new GuiGraphics(minecraft, graphics.bufferSource()) {
+			@Override
+			public void enableScissor(int minX, int minY, int maxX, int maxY) {
+				super.enableScissor((int) Math.floor(minX * scale), (int) Math.floor(minY * scale),
+						(int) Math.ceil(maxX * scale), (int) Math.ceil(maxY * scale));
+			}
+		};
+	}
+
+	/**
+	 * Los botones piden su tooltip aquí mientras se dibujan. Vanilla lo dibujaría después de render(), fuera del
+	 * escalado y descolocado; se guarda y se dibuja al final de render(), con la misma escala que el menú.
+	 */
+	@Override
+	public void setTooltipForNextRenderPass(Tooltip tooltip, ClientTooltipPositioner positioner, boolean focused) {
+		pendingTooltip = tooltip.toCharSequence(minecraft);
+		pendingPositioner = positioner;
+	}
+
+	// El ratón llega en coordenadas reales; los botones están en las virtuales (divididas por la escala)
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return super.mouseClicked(mouseX / uiScale, mouseY / uiScale, button);
+	}
+
+	@Override
+	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		return super.mouseReleased(mouseX / uiScale, mouseY / uiScale, button);
+	}
+
+	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		return super.mouseDragged(mouseX / uiScale, mouseY / uiScale, button, dragX / uiScale, dragY / uiScale);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		return super.mouseScrolled(mouseX / uiScale, mouseY / uiScale, scrollX, scrollY);
+	}
+
+	@Override
+	public void mouseMoved(double mouseX, double mouseY) {
+		super.mouseMoved(mouseX / uiScale, mouseY / uiScale);
+	}
+
+	private void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		super.render(graphics, mouseX, mouseY, partialTick);
 		int left = width / 2 - BUTTON_WIDTH - GAP / 2;
 		int rightEdge = width / 2 + GAP / 2 + BUTTON_WIDTH;
-		graphics.drawCenteredString(font, title, width / 2, Math.max(12, hudTitleY - 20), 0xFFFFFF);
+		graphics.drawCenteredString(font, title, width / 2, Math.max(6, hudTitleY - 20), 0xFFFFFF);
 		graphics.drawString(font, Component.translatable("cobbleevtracker.config.section.hud")
 				.withStyle(ChatFormatting.YELLOW), left, hudTitleY + 2, 0xFFFFFF);
 		Component goalTitle = target == null

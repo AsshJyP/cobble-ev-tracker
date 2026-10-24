@@ -1,5 +1,5 @@
 {
-	"modmenu.descriptionTranslation.cobbleevtracker": "Client-side EV training HUD for Cobblemon: per-Pokémon EV goals, alerts when a stat is complete or over its goal, and the EVs gained after each battle.",
+	"modmenu.descriptionTranslation.cobbleevtracker": "Client-side EV training HUD for Cobblemon: per-Pokémon EV goals with a recommended spread, alerts when a stat is complete or over its goal, a summary of the EVs gained after each battle, and the EVs each species gives in the Pokédex.",
 	"key.categories.cobbleevtracker": "Cobble EV Tracker",
 	"key.cobbleevtracker.open_menu": "Open Cobble EV Tracker menu",
 	"cobbleevtracker.hud.total": "Total: %s/%s",

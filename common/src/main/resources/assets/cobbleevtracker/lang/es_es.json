@@ -1,5 +1,5 @@
 {
-	"modmenu.descriptionTranslation.cobbleevtracker": "HUD de entrenamiento de EVs para Cobblemon (solo cliente): objetivos por Pokémon, aviso al completar una stat o al pasarte, y los EVs que ganas en cada combate.",
+	"modmenu.descriptionTranslation.cobbleevtracker": "HUD de entrenamiento de EVs para Cobblemon (solo cliente): objetivos por Pokémon con reparto recomendado, aviso al completar una stat o al pasarte, resumen de los EVs ganados en cada combate y los EVs que da cada especie en la Pokédex.",
 	"key.categories.cobbleevtracker": "Cobble EV Tracker",
 	"key.cobbleevtracker.open_menu": "Abrir menú de Cobble EV Tracker",
 	"cobbleevtracker.hud.total": "Total: %s/%s",

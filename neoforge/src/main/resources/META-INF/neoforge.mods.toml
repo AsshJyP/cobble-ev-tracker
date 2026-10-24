@@ -10,7 +10,7 @@ displayName = "Cobble EV Tracker"
 authors = "AsshJyP"
 displayURL = "https://github.com/AsshJyP/cobble-ev-tracker"
 logoFile = "assets/cobbleevtracker/icon.png"
-description = '''Client-side EV training HUD for Cobblemon: per-Pokémon EV goals, alerts when a stat is complete or over its goal, and the EVs gained after each battle.'''
+description = '''Client-side EV training HUD for Cobblemon: per-Pokémon EV goals with a recommended spread, alerts when a stat is complete or over its goal, a summary of the EVs gained after each battle, and the EVs each species gives in the Pokédex.'''
 # Solo de cliente: el servidor no necesita tenerlo y no debe marcarse como incompatible en la lista de servidores
 displayTest = "IGNORE_ALL_VERSION"
 

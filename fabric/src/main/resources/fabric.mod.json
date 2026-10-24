@@ -3,7 +3,7 @@
 	"id": "cobbleevtracker",
 	"version": "${version}",
 	"name": "Cobble EV Tracker",
-	"description": "Client-side EV training HUD for Cobblemon: per-Pokémon EV goals, alerts when a stat is complete or over its goal, and the EVs gained after each battle.",
+	"description": "Client-side EV training HUD for Cobblemon: per-Pokémon EV goals with a recommended spread, alerts when a stat is complete or over its goal, a summary of the EVs gained after each battle, and the EVs each species gives in the Pokédex.",
 	"authors": [
 		"AsshJyP"
 	],

@@ -42,7 +42,7 @@ public final class EvNotifier implements PartyWatcher.Listener {
 			diff[i] = after[i] - before[i];
 		}
 		Component gained = EvStats.describe(diff);
-		if (gained != null) {
+		if (gained != null && showsGainNow(config)) {
 			switch (config.gainMode) {
 				case TOAST -> SystemToast.add(client.getToasts(), GAIN_TOAST, name, gained);
 				case CHAT -> chat(client, Component.translatable("cobbleevtracker.gain.chat",
@@ -80,6 +80,18 @@ public final class EvNotifier implements PartyWatcher.Listener {
 					Component.translatable("cobbleevtracker.complete.toast.message", name));
 			play(client, SoundEvents.PLAYER_LEVELUP);
 		}
+	}
+
+	/**
+	 * ¿Se avisa de este cambio al momento? En "Resumen al final" los cambios de un combate esperan al resumen
+	 * (BattleSummary); los de fuera de combate (vitaminas, bayas) se avisan igual.
+	 */
+	private static boolean showsGainNow(EvConfig config) {
+		return switch (config.gainTiming) {
+			case PER_CHANGE, BOTH -> true;
+			case BATTLE_SUMMARY -> !BattleSummary.isCollecting();
+			case OFF -> false;
+		};
 	}
 
 	/** Todas las stats justo en su objetivo. */
@@ -128,7 +140,7 @@ public final class EvNotifier implements PartyWatcher.Listener {
 		// Aún sin Pokémon activo: se vuelve a mirar el próximo tick
 	}
 
-	private static void chat(Minecraft client, Component message) {
+	static void chat(Minecraft client, Component message) {
 		if (client.player != null) {
 			client.player.displayClientMessage(Component.literal("[EV] ").withStyle(ChatFormatting.DARK_AQUA)
 					.append(message), false);

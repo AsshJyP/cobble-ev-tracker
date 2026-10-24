@@ -3,6 +3,7 @@ package io.github.asshjyp.cobbleevtracker;
 import com.cobblemon.mod.common.client.CobblemonClient;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.github.asshjyp.cobbleevtracker.EvConfig.GainMode;
+import io.github.asshjyp.cobbleevtracker.EvConfig.GainTiming;
 import io.github.asshjyp.cobbleevtracker.EvConfig.HudMode;
 import io.github.asshjyp.cobbleevtracker.EvGoals.Template;
 import net.minecraft.ChatFormatting;
@@ -30,8 +31,9 @@ public class EvConfigScreen extends Screen {
 	private static final int BUTTON_WIDTH = 150;
 	private static final int BUTTON_HEIGHT = 20;
 	private static final int GAP = 10;
-	private static final int ROW = 24;
-	private static final int SECTION = 16;
+	/** Separación entre filas y alto de los títulos de sección; más apretados en pantallas bajas (ver init). */
+	private int row = 24;
+	private int section = 16;
 	private static final int GOAL_COLUMNS = 3;
 	private static final int GOAL_COLUMN_GAP = 8;
 	private static final int TEXT_ERROR = 0xFF5555;
@@ -75,12 +77,19 @@ public class EvConfigScreen extends Screen {
 		int right = width / 2 + GAP / 2;
 		int fullWidth = BUTTON_WIDTH * 2 + GAP;
 		// 3 títulos de sección, 8 filas, separaciones y el botón "Listo"
-		int contentHeight = SECTION * 3 + ROW * 8 + 6 * 2 + 8 + BUTTON_HEIGHT;
+		// 3 títulos de sección y 9 filas; si no cabe con el espaciado normal, se aprieta (los botones siguen midiendo 20)
+		row = 24;
+		section = 16;
+		if (section * 3 + row * 9 + 6 * 2 + 8 + BUTTON_HEIGHT + 28 > height) {
+			row = 21;
+			section = 12;
+		}
+		int contentHeight = section * 3 + row * 9 + 6 * 2 + 8 + BUTTON_HEIGHT;
 		int y = Math.max(28, (height - contentHeight) / 2 + 8);
 
 		// --- HUD ---
 		hudTitleY = y;
-		y += SECTION;
+		y += section;
 		addRenderableWidget(CycleButton.onOffBuilder(config.hudEnabled)
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.hud"),
 						(button, value) -> config.hudEnabled = value));
@@ -89,7 +98,7 @@ public class EvConfigScreen extends Screen {
 				.bounds(right, y, BUTTON_WIDTH, BUTTON_HEIGHT)
 				.tooltip(Tooltip.create(Component.translatable("cobbleevtracker.config.edit_hud.tooltip")))
 				.build());
-		y += ROW;
+		y += row;
 		addRenderableWidget(CycleButton.<HudMode>builder(mode -> Component.translatable(
 						"cobbleevtracker.config.hud_mode." + mode.name().toLowerCase(Locale.ROOT)))
 				.withValues(HudMode.values())
@@ -106,16 +115,16 @@ public class EvConfigScreen extends Screen {
 							needsRebuild = true;
 						}));
 		addFixedPokemonButton(right, y);
-		y += ROW;
+		y += row;
 		addRenderableWidget(CycleButton.onOffBuilder(config.onlyWithGoal)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.only_with_goal.tooltip")))
 				.create(left, y, fullWidth, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.only_with_goal"),
 						(button, value) -> config.onlyWithGoal = value));
-		y += ROW + 6;
+		y += row + 6;
 
 		// --- Objetivo del Pokémon actual ---
 		goalTitleY = y;
-		y += SECTION;
+		y += section;
 		int[] goal = target == null ? null : EvGoals.get(target.getUuid());
 		int columnWidth = (fullWidth - GOAL_COLUMN_GAP * (GOAL_COLUMNS - 1)) / GOAL_COLUMNS;
 		int labelWidth = 0;
@@ -124,7 +133,7 @@ public class EvConfigScreen extends Screen {
 		}
 		for (int i = 0; i < EvStats.COUNT; i++) {
 			int column = i % GOAL_COLUMNS;
-			int rowY = y + (i / GOAL_COLUMNS) * ROW;
+			int rowY = y + (i / GOAL_COLUMNS) * row;
 			int columnX = left + column * (columnWidth + GOAL_COLUMN_GAP);
 			labelX[i] = columnX;
 			labelY[i] = rowY + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1;
@@ -144,7 +153,7 @@ public class EvConfigScreen extends Screen {
 			});
 			goalBoxes[i] = addRenderableWidget(box);
 		}
-		y += ROW * 2;
+		y += row * 2;
 		List<Preset> presets = presets();
 		UUID targetId = target == null ? null : target.getUuid();
 		if (!Objects.equals(targetId, presetTarget)) {
@@ -167,11 +176,11 @@ public class EvConfigScreen extends Screen {
 						button -> fillBoxes(new int[EvStats.COUNT]))
 				.bounds(right + BUTTON_WIDTH - halfWidth, y, halfWidth, BUTTON_HEIGHT)
 				.build()).active = target != null;
-		y += ROW + 6;
+		y += row + 6;
 
 		// --- Avisos ---
 		alertsTitleY = y;
-		y += SECTION;
+		y += section;
 		addRenderableWidget(CycleButton.onOffBuilder(config.notifyGoalReached)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.notify_goal.tooltip")))
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.notify_goal"),
@@ -180,19 +189,29 @@ public class EvConfigScreen extends Screen {
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.notify_over.tooltip")))
 				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.notify_over"),
 						(button, value) -> config.notifyOverGoal = value));
-		y += ROW;
+		y += row;
+		addRenderableWidget(CycleButton.<GainTiming>builder(timing -> Component.translatable(
+						"cobbleevtracker.config.gain_timing." + timing.name().toLowerCase(Locale.ROOT)))
+				.withValues(GainTiming.values())
+				.withInitialValue(config.gainTiming)
+				.withTooltip(timing -> Tooltip.create(Component.translatable(
+						"cobbleevtracker.config.gain_timing." + timing.name().toLowerCase(Locale.ROOT) + ".tooltip")))
+				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.gain_timing"),
+						(button, value) -> config.gainTiming = value));
+		// NONE no se ofrece: para no avisar está "Ganancias: Apagado"
 		addRenderableWidget(CycleButton.<GainMode>builder(mode -> Component.translatable(
 						"cobbleevtracker.config.gain_mode." + mode.name().toLowerCase(Locale.ROOT)))
-				.withValues(GainMode.values())
-				.withInitialValue(config.gainMode)
+				.withValues(GainMode.TOAST, GainMode.CHAT)
+				.withInitialValue(config.gainMode == GainMode.CHAT ? GainMode.CHAT : GainMode.TOAST)
 				.withTooltip(mode -> Tooltip.create(Component.translatable("cobbleevtracker.config.gain_mode.tooltip")))
-				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.gain_mode"),
+				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.gain_mode"),
 						(button, value) -> config.gainMode = value));
+		y += row;
 		addRenderableWidget(CycleButton.onOffBuilder(config.showRivalYield)
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.rival_yield.tooltip")))
-				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.rival_yield"),
+				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.rival_yield"),
 						(button, value) -> config.showRivalYield = value));
-		y += ROW + 8;
+		y += row + 8;
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
 				.bounds(width / 2 - 100, y, 200, BUTTON_HEIGHT)

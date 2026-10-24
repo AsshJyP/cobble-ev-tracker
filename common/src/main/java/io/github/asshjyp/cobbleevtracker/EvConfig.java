@@ -32,12 +32,18 @@ public final class EvConfig {
 	/** Qué Pokémon enseña el HUD: el seleccionado en el party de Cobblemon (↑/↓) o uno fijo. */
 	public enum HudMode { FOLLOW_SELECTION, FIXED }
 
-	/** Cómo se avisa de los EVs ganados (combates, vitaminas, bayas…). */
+	/** Dónde se avisa de los EVs ganados. NONE solo existe por los config.json de la 0.1.0: se pasa a GainTiming.OFF. */
 	public enum GainMode { TOAST, CHAT, NONE }
+
+	/**
+	 * Cuándo se avisa de los EVs ganados: por cada cambio (como la 0.1.0), con un resumen al terminar cada combate
+	 * (por defecto; lo de fuera de combate, como vitaminas, se sigue avisando al momento), las dos cosas o nunca.
+	 */
+	public enum GainTiming { PER_CHANGE, BATTLE_SUMMARY, BOTH, OFF }
 
 	// Gson ignora este campo al leer; solo sirve de ayuda a quien edite el archivo
 	@SuppressWarnings("unused")
-	private String _info = "Todo se cambia también desde el menú (tecla N o Mod Menu). hudCorner: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT o BOTTOM_RIGHT; hudOffsetX/hudOffsetY lo separan de esa esquina (en píxeles de la interfaz) y hudScale es su tamaño (0.5 a 2). Lo más cómodo es el botón \"Mover y escalar HUD\" del menú. hudMode: FOLLOW_SELECTION o FIXED. gainMode: TOAST, CHAT o NONE. Los objetivos van en goals.json.";
+	private String _info = "Todo se cambia también desde el menú (tecla N o Mod Menu). hudCorner: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT o BOTTOM_RIGHT; hudOffsetX/hudOffsetY lo separan de esa esquina (en píxeles de la interfaz) y hudScale es su tamaño (0.5 a 2). Lo más cómodo es el botón \"Mover y escalar HUD\" del menú. hudMode: FOLLOW_SELECTION o FIXED. gainTiming: PER_CHANGE, BATTLE_SUMMARY, BOTH u OFF. gainMode (dónde): TOAST o CHAT. Los objetivos van en goals.json.";
 
 	// --- HUD ---
 	public boolean hudEnabled = true;
@@ -56,6 +62,7 @@ public final class EvConfig {
 	// --- Avisos ---
 	public boolean notifyGoalReached = true;
 	public boolean notifyOverGoal = true;
+	public GainTiming gainTiming = GainTiming.BATTLE_SUMMARY;
 	public GainMode gainMode = GainMode.TOAST;
 	/** EV yield del salvaje al empezar un combate contra él (apagado por defecto). */
 	public boolean showRivalYield = false;
@@ -85,7 +92,13 @@ public final class EvConfig {
 	private EvConfig sanitized() {
 		if (hudCorner == null) hudCorner = HudCorner.TOP_LEFT;
 		if (hudMode == null) hudMode = HudMode.FOLLOW_SELECTION;
+		if (gainTiming == null) gainTiming = GainTiming.BATTLE_SUMMARY;
 		if (gainMode == null) gainMode = GainMode.TOAST;
+		if (gainMode == GainMode.NONE) {
+			// 0.1.0: "Ganancia: Nada" pasa a "Cuándo: Apagado"
+			gainTiming = GainTiming.OFF;
+			gainMode = GainMode.TOAST;
+		}
 		if (fixedPokemon == null) fixedPokemon = "";
 		hudOffsetX = Math.clamp(hudOffsetX, MIN_OFFSET, MAX_OFFSET);
 		hudOffsetY = Math.clamp(hudOffsetY, MIN_OFFSET, MAX_OFFSET);

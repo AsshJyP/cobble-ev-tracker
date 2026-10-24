@@ -38,6 +38,7 @@ public final class CobbleEvTracker {
 	/** Al final de cada tick del cliente. */
 	public static void onClientTick(Minecraft client) {
 		PartyWatcher.tick(client);
+		BattleSummary.tick(client);
 		EvNotifier.tickRival(client);
 		// consumeClick solo da true jugando (sin otra pantalla abierta)
 		while (OPEN_MENU.consumeClick()) {

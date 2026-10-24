@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/AsshJyP/cobble-ev-tracker/issues"
+
+[[mods]]
+modId = "cobbleevtracker"
+version = "${version}"
+displayName = "Cobble EV Tracker"
+authors = "AsshJyP"
+displayURL = "https://github.com/AsshJyP/cobble-ev-tracker"
+logoFile = "assets/cobbleevtracker/icon.png"
+description = '''Client-side EV training HUD for Cobblemon: per-Pokémon EV goals, alerts when a stat is complete or over its goal, and the EVs gained after each battle.'''
+# Solo de cliente: el servidor no necesita tenerlo y no debe marcarse como incompatible en la lista de servidores
+displayTest = "IGNORE_ALL_VERSION"
+
+[[dependencies.cobbleevtracker]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.cobbleevtracker]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.cobbleevtracker]]
+modId = "cobblemon"
+type = "required"
+versionRange = "[1.7.3,)"
+ordering = "AFTER"
+side = "CLIENT"

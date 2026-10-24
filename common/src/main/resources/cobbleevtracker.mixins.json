@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "io.github.asshjyp.cobbleevtracker.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"PokedexGUIMixin",
+		"StatsWidgetMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

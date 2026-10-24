@@ -70,5 +70,8 @@
 	"cobbleevtracker.config.gain_timing.off": "Apagado",
 	"cobbleevtracker.config.gain_timing.off.tooltip": "No avisa de los EVs ganados (los avisos de objetivo siguen funcionando).",
 	"cobbleevtracker.summary.title": "Combate terminado",
-	"cobbleevtracker.summary.line": "%s: %s"
+	"cobbleevtracker.summary.line": "%s: %s",
+	"cobbleevtracker.config.pokedex_yield": "EVs en la Pokédex",
+	"cobbleevtracker.config.pokedex_yield.tooltip": "En la pestaña de stats de la Pokédex, enseña junto a cada barra los EVs que da la especie al derrotarla.",
+	"cobbleevtracker.pokedex.yield": "EVs que da al derrotarlo: %s"
 }

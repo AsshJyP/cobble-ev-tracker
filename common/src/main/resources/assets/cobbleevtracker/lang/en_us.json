@@ -70,5 +70,8 @@
 	"cobbleevtracker.config.gain_timing.off": "Off",
 	"cobbleevtracker.config.gain_timing.off.tooltip": "No alerts for gained EVs (goal alerts still work).",
 	"cobbleevtracker.summary.title": "Battle over",
-	"cobbleevtracker.summary.line": "%s: %s"
+	"cobbleevtracker.summary.line": "%s: %s",
+	"cobbleevtracker.config.pokedex_yield": "EVs in Pokédex",
+	"cobbleevtracker.config.pokedex_yield.tooltip": "In the Pokédex stats tab, shows next to each bar the EVs the species gives when defeated.",
+	"cobbleevtracker.pokedex.yield": "EVs it gives when defeated: %s"
 }

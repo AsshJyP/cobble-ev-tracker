@@ -66,6 +66,8 @@ public final class EvConfig {
 	public GainMode gainMode = GainMode.TOAST;
 	/** EV yield del salvaje al empezar un combate contra él (apagado por defecto). */
 	public boolean showRivalYield = false;
+	/** EVs que da cada especie en la pestaña de stats de la Pokédex de Cobblemon (encendido por defecto). */
+	public boolean showPokedexYield = true;
 
 	public static EvConfig load() {
 		EvConfig config = new EvConfig();

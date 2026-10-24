@@ -14,6 +14,9 @@ description = '''Client-side EV training HUD for Cobblemon: per-Pokémon EV goal
 # Solo de cliente: el servidor no necesita tenerlo y no debe marcarse como incompatible en la lista de servidores
 displayTest = "IGNORE_ALL_VERSION"
 
+[[mixins]]
+config = "cobbleevtracker.mixins.json"
+
 [[dependencies.cobbleevtracker]]
 modId = "neoforge"
 type = "required"

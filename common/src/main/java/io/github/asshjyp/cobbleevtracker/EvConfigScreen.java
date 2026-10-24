@@ -211,6 +211,10 @@ public class EvConfigScreen extends Screen {
 				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.rival_yield.tooltip")))
 				.create(left, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.rival_yield"),
 						(button, value) -> config.showRivalYield = value));
+		addRenderableWidget(CycleButton.onOffBuilder(config.showPokedexYield)
+				.withTooltip(value -> Tooltip.create(Component.translatable("cobbleevtracker.config.pokedex_yield.tooltip")))
+				.create(right, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("cobbleevtracker.config.pokedex_yield"),
+						(button, value) -> config.showPokedexYield = value));
 		y += row + 8;
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
